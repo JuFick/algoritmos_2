@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualizador Interativo do Insertion Sort</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chosen Palette: Warm Neutrals -->
+    <!-- Application Structure Plan: Criei um simulador interativo de duas colunas. À esquerda, uma visualização dinâmica da lista de nós permite ao usuário ver as mudanças em tempo real. À direita, o código do algoritmo é exibido com a linha de execução atual destacada, junto com painéis que explicam o estado das variáveis e a lógica do passo. O usuário controla o ritmo com botões "Próximo" e "Reiniciar". Esta estrutura foi escolhida para conectar diretamente o código abstrato ao seu impacto visual nos dados, facilitando o aprendizado, que é o objetivo principal do relatório original. -->
+    <!-- Visualization & Content Choices: Report Info: Processo do algoritmo Insertion Sort. -> Goal: Ensinar o algoritmo de forma visual e interativa. -> Viz/Presentation Method: Simulação passo a passo. A lista é representada por divs estilizados (mais claros que ASCII art). O código é mostrado em um bloco <pre> com destaque de linha dinâmico. Painéis de texto mostram o estado e a explicação de cada passo, extraídos diretamente do relatório. -> Interaction: O usuário avança na simulação com um botão "Próximo Passo". -> Justification: Este formato interativo é mais envolvente para o aprendizado do que um documento estático, pois permite ao usuário controlar o ritmo e ver causa e efeito em tempo real. -> Library/Method: Vanilla JavaScript para toda a lógica e manipulação do DOM. Tailwind CSS para o estilo. Nenhuma biblioteca de gráficos (Chart.js, Plotly) foi necessária. CONFIRMADO: Sem SVG ou Mermaid. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            background-color: #FDF5E6; /* beige claro */
+            color: #4A4A4A; /* cinza escuro */
+            font-family: 'Inter', sans-serif;
+        }
+        .node {
+            border: 2px solid #D2B48C; /* tan */
+            background-color: #FFF8DC; /* cornsilk */
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin: 0 0.5rem;
+            min-width: 60px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.25rem;
+            transition: all 0.5s ease-in-out;
+            position: relative;
+        }
+        .node-ordered {
+            background-color: #A7C7E7; /* azul claro pastel */
+            border-color: #6495ED; /* cornflower blue */
+        }
+        .node-arrow {
+            position: absolute;
+            right: -2.0rem;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 2rem;
+            color: #D2B48C;
+        }
+        .node-label {
+            position: absolute;
+            bottom: -2.5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.8rem;
+            white-space: nowrap;
+        }
+        .label-atual { background-color: #FFD700; color: #333; } /* amarelo ouro */
+        .label-mover { background-color: #FFA07A; color: #333; } /* salmão claro */
+        
+        .code-highlight {
+            background-color: #FFD700 !important;
+            border-radius: 4px;
+        }
+        .panel {
+            background-color: #FFFFFF;
+            border: 1px solid #EAEAEA;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .btn-primary {
+            background-color: #6495ED; /* cornflower blue */
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #4169E1; /* royal blue */
+        }
+        .btn-secondary {
+            background-color: #D2B48C; /* tan */
+            color: white;
+        }
+        .btn-secondary:hover {
+            background-color: #BC8F8F; /* rosey brown */
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <div class="max-w-7xl mx-auto">
+        <header class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-[#4A4A4A]">Visualizador Interativo do Insertion Sort</h1>
+            <p class="text-lg mt-2 text-[#6e6e6e]">Explore o algoritmo passo a passo em uma lista duplamente encadeada.</p>
+        </header>
+
+        <main class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            
+            <!-- Coluna da Esquerda: Visualização -->
+            <div class="flex flex-col space-y-8">
+                <div class="panel">
+                    <h2 class="text-2xl font-bold mb-4">Estado da Lista</h2>
+                    <div id="list-container" class="flex justify-center items-start p-12 min-h-[200px] overflow-x-auto">
+                        <!-- Os nós da lista serão gerados aqui pelo JavaScript -->
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <h2 class="text-2xl font-bold mb-4">Painel de Controle</h2>
+                    <div id="controls" class="flex items-center justify-center space-x-4">
+                         <button id="reset-btn" class="btn btn-secondary">Reiniciar</button>
+                         <button id="next-btn" class="btn btn-primary">Próximo Passo</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Coluna da Direita: Código e Explicação -->
+            <div class="flex flex-col space-y-8">
+                <div class="panel">
+                    <h2 class="text-2xl font-bold mb-2">Código</h2>
+                    <pre class="bg-gray-50 p-4 rounded-lg overflow-x-auto text-sm"><code id="code-block" class="language-python">
+<span data-line="1">def ordena_insertion(self):</span>
+<span data-line="2">    if self.head is None or self.head.next is None:</span>
+<span data-line="3">        return</span>
+<span data-line="4"></span>
+<span data-line="5">    atual = self.head.next</span>
+<span data-line="6">    while atual is not None:</span>
+<span data-line="7">        chave = atual.valor</span>
+<span data-line="8">        mover = atual.prev</span>
+<span data-line="9"></span>
+<span data-line="10">        while mover is not None and mover.valor > chave:</span>
+<span data-line="11">            mover.next.valor = mover.valor</span>
+<span data-line="12">            mover = mover.prev</span>
+<span data-line="13"></span>
+<span data-line="14">        if mover is None:</span>
+<span data-line="15">            self.head.valor = chave</span>
+<span data-line="16">        else:</span>
+<span data-line="17">            mover.next.valor = chave</span>
+<span data-line="18"></span>
+<span data-line="19">        atual = atual.next</span>
+                    </code></pre>
+                </div>
+
+                <div class="panel">
+                    <h2 class="text-2xl font-bold mb-2">Estado das Variáveis</h2>
+                    <div id="state-panel" class="space-y-2 text-lg">
+                        <!-- Informações das variáveis serão atualizadas aqui -->
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <h2 class="text-2xl font-bold mb-2">Explicação</h2>
+                    <p id="explanation-panel" class="text-lg leading-relaxed">
+                        <!-- Explicação do passo atual será atualizada aqui -->
+                    </p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const initialList = [13, 95, 21, 57];
+
+        const steps = [
+            {
+                list: [...initialList],
+                orderedUntil: 0,
+                atual: 1,
+                mover: -1,
+                chave: null,
+                line: 5,
+                state: "<code>atual</code> → (Nó 95)",
+                explanation: "O algoritmo começa. A zona ordenada é o primeiro nó [13]. `atual` aponta para o próximo nó, `95`."
+            },
+            {
+                list: [...initialList],
+                orderedUntil: 0,
+                atual: 1,
+                mover: 0,
+                chave: 95,
+                line: 7,
+                state: "<code>atual</code> → (Nó 95)<br><code>chave</code> = 95<br><code>mover</code> → (Nó 13)",
+                explanation: "A `chave` é definida como 95. `mover` aponta para o nó anterior, `13`, para iniciar a verificação."
+            },
+            {
+                list: [...initialList],
+                orderedUntil: 0,
+                atual: 1,
+                mover: 0,
+                chave: 95,
+                line: 10,
+                state: "<code>atual</code> → (Nó 95)<br><code>chave</code> = 95<br><code>mover</code> → (Nó 13)",
+                explanation: "O loop interno verifica se `mover` existe e se seu valor (13) é maior que a `chave` (95). A condição (13 > 95) é falsa."
+            },
+            {
+                list: [...initialList],
+                orderedUntil: 0,
+                atual: 1,
+                mover: 0,
+                chave: 95,
+                line: 14,
+                state: "<code>atual</code> → (Nó 95)<br><code>chave</code> = 95<br><code>mover</code> → (Nó 13)",
+                explanation: "Como o loop interno não executou, `mover` não é nulo. O código vai para o bloco `else`."
+            },
+            {
+                list: [...initialList],
+                orderedUntil: 0,
+                atual: 1,
+                mover: 0,
+                chave: 95,
+                line: 17,
+                state: "<code>atual</code> → (Nó 95)<br><code>chave</code> = 95<br><code>mover</code> → (Nó 13)",
+                explanation: "O valor no nó seguinte a `mover` (que é o próprio nó `atual`) recebe a `chave`. Nenhuma mudança visual ocorre."
+            },
+            {
+                list: [13, 95, 21, 57],
+                orderedUntil: 1,
+                atual: 1,
+                mover: 0,
+                chave: 95,
+                line: 19,
+                state: "<code>atual</code> → (Nó 95)",
+                explanation: "A primeira iteração termina. `atual` avança para o próximo nó, `21`. A zona ordenada agora é [13, 95]."
+            },
+            // Iteration for 21
+            {
+                list: [13, 95, 21, 57],
+                orderedUntil: 1,
+                atual: 2,
+                mover: 1,
+                chave: 21,
+                line: 7,
+                state: "<code>atual</code> → (Nó 21)<br><code>chave</code> = 21<br><code>mover</code> → (Nó 95)",
+                explanation: "Nova iteração. A `chave` é 21. `mover` aponta para `95` para iniciar a verificação."
+            },
+            {
+                list: [13, 95, 21, 57],
+                orderedUntil: 1,
+                atual: 2,
+                mover: 1,
+                chave: 21,
+                line: 10,
+                state: "<code>atual</code> → (Nó 21)<br><code>chave</code> = 21<br><code>mover</code> → (Nó 95)",
+                explanation: "O loop verifica: `mover` existe E `mover.valor` (95) > `chave` (21)? A condição é VERDADEIRA."
+            },
+            {
+                list: [13, 95, 95, 57],
+                orderedUntil: 1,
+                atual: 2,
+                mover: 1,
+                chave: 21,
+                line: 11,
+                state: "<code>atual</code> → (Nó 21)<br><code>chave</code> = 21<br><code>mover</code> → (Nó 95)",
+                explanation: "Ação de deslocamento! O valor de `mover` (95) é copiado para o nó seguinte. A lista fica temporariamente com um valor duplicado."
+            },
+            {
+                list: [13, 95, 95, 57],
+                orderedUntil: 1,
+                atual: 2,
+                mover: 0,
+                chave: 21,
+                line: 12,
+                state: "<code>atual</code> → (Nó 21)<br><code>chave</code> = 21<br><code>mover</code> → (Nó 13)",
+                explanation: "`mover` recua para o nó anterior, `13`."
+            },
+            {
+                list: [13, 95, 95, 57],
+                orderedUntil: 1,
+                atual: 2,
+                mover: 0,
+                chave: 21,
+                line: 10,
+                state: "<code>atual</code> → (Nó 21)<br><code>chave</code> = 21<br><code>mover</code> → (Nó 13)",
+                explanation: "O loop verifica novamente: `mover` existe E `mover.valor` (13) > `chave` (21)? A condição é FALSA. O loop termina."
+            },
+            {
+                list: [13, 21, 95, 57],
+                orderedUntil: 1,
+                atual: 2,
+                mover: 0,
+                chave: 21,
+                line: 17,
+                state: "<code>atual</code> → (Nó 21)<br><code>chave</code> = 21<br><code>mover</code> → (Nó 13)",
+                explanation: "Inserção! O valor no nó seguinte a `mover` (onde está o 95 duplicado) recebe a `chave` (21)."
+            },
+            {
+                list: [13, 21, 95, 57],
+                orderedUntil: 2,
+                atual: 2,
+                mover: 0,
+                chave: 21,
+                line: 19,
+                state: "<code>atual</code> → (Nó 21)",
+                explanation: "A iteração termina. `atual` avança. A zona ordenada agora é [13, 21, 95]."
+            },
+             // Iteration for 57
+            {
+                list: [13, 21, 95, 57],
+                orderedUntil: 2,
+                atual: 3,
+                mover: 2,
+                chave: 57,
+                line: 7,
+                state: "<code>atual</code> → (Nó 57)<br><code>chave</code> = 57<br><code>mover</code> → (Nó 95)",
+                explanation: "Próxima iteração. A `chave` é 57. `mover` aponta para `95`."
+            },
+            {
+                list: [13, 21, 95, 57],
+                orderedUntil: 2,
+                atual: 3,
+                mover: 2,
+                chave: 57,
+                line: 10,
+                state: "<code>atual</code> → (Nó 57)<br><code>chave</code> = 57<br><code>mover</code> → (Nó 95)",
+                explanation: "O loop verifica: `mover.valor` (95) > `chave` (57)? A condição é VERDADEIRA."
+            },
+            {
+                list: [13, 21, 95, 95],
+                orderedUntil: 2,
+                atual: 3,
+                mover: 2,
+                chave: 57,
+                line: 11,
+                state: "<code>atual</code> → (Nó 57)<br><code>chave</code> = 57<br><code>mover</code> → (Nó 95)",
+                explanation: "Ação de deslocamento! O valor 95 é copiado para a posição seguinte."
+            },
+            {
+                list: [13, 21, 95, 95],
+                orderedUntil: 2,
+                atual: 3,
+                mover: 1,
+                chave: 57,
+                line: 12,
+                state: "<code>atual</code> → (Nó 57)<br><code>chave</code> = 57<br><code>mover</code> → (Nó 21)",
+                explanation: "`mover` recua para o nó anterior, `21`."
+            },
+            {
+                list: [13, 21, 95, 95],
+                orderedUntil: 2,
+                atual: 3,
+                mover: 1,
+                chave: 57,
+                line: 10,
+                state: "<code>atual</code> → (Nó 57)<br><code>chave</code> = 57<br><code>mover</code> → (Nó 21)",
+                explanation: "O loop verifica novamente: `mover.valor` (21) > `chave` (57)? A condição é FALSA. O loop termina."
+            },
+            {
+                list: [13, 21, 57, 95],
+                orderedUntil: 2,
+                atual: 3,
+                mover: 1,
+                chave: 57,
+                line: 17,
+                state: "<code>atual</code> → (Nó 57)<br><code>chave</code> = 57<br><code>mover</code> → (Nó 21)",
+                explanation: "Inserção! O valor no nó seguinte a `mover` (onde está o 95 duplicado) recebe a `chave` (57)."
+            },
+            {
+                list: [13, 21, 57, 95],
+                orderedUntil: 3,
+                atual: 3,
+                mover: 1,
+                chave: 57,
+                line: 19,
+                state: "<code>atual</code> → (Nó 57)",
+                explanation: "A iteração termina. `atual` avança para o fim da lista."
+            },
+            {
+                list: [13, 21, 57, 95],
+                orderedUntil: 3,
+                atual: -1,
+                mover: -1,
+                chave: null,
+                line: 0,
+                state: "Ordenação Completa!",
+                explanation: "O algoritmo processou todos os elementos. A lista está agora totalmente ordenada."
+            },
+        ];
+
+        let currentStep = 0;
+
+        const listContainer = document.getElementById('list-container');
+        const statePanel = document.getElementById('state-panel');
+        const explanationPanel = document.getElementById('explanation-panel');
+        const codeBlock = document.getElementById('code-block');
+        const nextBtn = document.getElementById('next-btn');
+        const resetBtn = document.getElementById('reset-btn');
+
+        function render() {
+            const step = steps[currentStep];
+
+            // Render list
+            listContainer.innerHTML = '';
+            step.list.forEach((val, index) => {
+                const node = document.createElement('div');
+                node.className = 'node';
+                if (index <= step.orderedUntil) {
+                    node.classList.add('node-ordered');
+                }
+                node.textContent = val;
+                
+                if (index === step.atual) {
+                    const label = document.createElement('div');
+                    label.className = 'node-label label-atual';
+                    label.textContent = 'atual';
+                    node.appendChild(label);
+                }
+                if (index === step.mover) {
+                    const label = document.createElement('div');
+                    label.className = 'node-label label-mover';
+                    label.textContent = 'mover';
+                    node.appendChild(label);
+                }
+
+                if (index < step.list.length - 1) {
+                    const arrow = document.createElement('div');
+                    arrow.className = 'node-arrow';
+                    arrow.innerHTML = '&rarr;';
+                    node.appendChild(arrow);
+                }
+
+                listContainer.appendChild(node);
+            });
+            
+            // Render panels
+            statePanel.innerHTML = step.state;
+            explanationPanel.textContent = step.explanation;
+
+            // Highlight code
+            const allLines = codeBlock.querySelectorAll('span');
+            allLines.forEach(line => line.classList.remove('code-highlight'));
+            if (step.line > 0) {
+                const lineToHighlight = codeBlock.querySelector(`span[data-line="${step.line}"]`);
+                if (lineToHighlight) {
+                    lineToHighlight.classList.add('code-highlight');
+                }
+            }
+
+            // Update buttons
+            nextBtn.disabled = currentStep >= steps.length - 1;
+            resetBtn.disabled = currentStep === 0;
+            nextBtn.style.opacity = nextBtn.disabled ? '0.5' : '1';
+            resetBtn.style.opacity = resetBtn.disabled ? '0.5' : '1';
+        }
+
+        nextBtn.addEventListener('click', () => {
+            if (currentStep < steps.length - 1) {
+                currentStep++;
+                render();
+            }
+        });
+
+        resetBtn.addEventListener('click', () => {
+            currentStep = 0;
+            render();
+        });
+
+        // Initial render
+        render();
+
+    </script>
+</body>
+</html>
+
