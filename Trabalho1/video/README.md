@@ -13,7 +13,6 @@ Painel de Estado: Acompanhe os valores das variáveis importantes.
 
 Explicações Claras: Cada passo é explicado de forma simples.
 
-Design Responsivo: Funciona em computadores e telemóveis.
 
 ### 🧠 Como Funciona o Algoritmo
 A lógica do Insertion Sort divide a lista numa zona ordenada (à esquerda) e noutra não ordenada (à direita). A cada passo, o algoritmo pega o primeiro elemento da zona não ordenada (a "chave") e o insere no local correto da zona ordenada, deslocando os elementos maiores para a direita para criar espaço. O processo repete-se até a lista estar totalmente ordenada.
@@ -28,7 +27,7 @@ Observe as mudanças no código, nas variáveis e na lista.
 Clique em "Reiniciar" para começar de novo.
 
 ### 🛠️ Tecnologias
-HTML5, Tailwind CSS, e JavaScript (Vanilla).
+HTML5, Tailwind CSS, e JavaScript.
 
 #### algoritmos_2
 Repositório destinado ao desenvolvimento da matéria de Algoritmos e Estrutura de Dados II
