@@ -1,174 +1,160 @@
+# -*- coding: utf-8 -*-
 import os
 
-def counting_sort_custom(data_list, exp, get_key_func):
+def counting_sort(lista_de_sorteios, expoente, obter_chave_func):
     """
     Função auxiliar do Radix Sort que ordena a lista de sorteios
     com base em um dígito específico da chave de ordenação.
     """
-    n = len(data_list)
-    output = [None] * n
-    count = [0] * 10
+    tamanho = len(lista_de_sorteios)
+    lista_saida = [None] * tamanho
+    contagem = [0] * 10
 
     # Conta a ocorrência de cada dígito (0 a 9)
-    for i in range(n):
-        key = get_key_func(data_list[i])
-        index = (key // exp) % 10
-        count[index] += 1
+    for i in range(tamanho):
+        chave = obter_chave_func(lista_de_sorteios[i])
+        indice_digito = (chave // expoente) % 10
+        contagem[indice_digito] += 1
 
-    # Soma cumulativa para obter as posições corretas
+    # Soma cumulativa para obter as posições finais
     for i in range(1, 10):
-        count[i] += count[i - 1]
+        contagem[i] += contagem[i - 1]
 
-    # Constrói a lista de saída de forma estável (de trás para frente)
-    i = n - 1
+    # Constrói a lista de saída de forma estável
+    i = tamanho - 1
     while i >= 0:
-        key = get_key_func(data_list[i])
-        index = (key // exp) % 10
-        output[count[index] - 1] = data_list[i]
-        count[index] -= 1
+        sorteio_atual = lista_de_sorteios[i]
+        chave = obter_chave_func(sorteio_atual)
+        indice_digito = (chave // expoente) % 10
+        posicao_final = contagem[indice_digito] - 1
+        lista_saida[posicao_final] = sorteio_atual
+        contagem[indice_digito] -= 1
         i -= 1
 
     # Copia a lista ordenada de volta para a lista original
-    for i in range(n):
-        data_list[i] = output[i]
+    for i in range(tamanho):
+        lista_de_sorteios[i] = lista_saida[i]
 
-def radix_sort_custom(data_list, get_key_func):
+def radix_sort(lista_de_sorteios, obter_chave_func):
     """
-    Ordena uma lista de dicionários (sorteios) usando o Radix Sort.
-    A ordenação é baseada em uma chave numérica extraída de cada item.
+    Implementa o Radix Sort, ordenando os números dígito por dígito,
+    do menos significativo para o mais significativo.
     """
-    if not data_list:
+    if not lista_de_sorteios:
         return []
 
-    # Encontra a maior chave para determinar o número de dígitos
-    max_key = 0
-    for item in data_list:
-        key = get_key_func(item)
-        if key > max_key:
-            max_key = key
+    chave_maxima = max(obter_chave_func(item) for item in lista_de_sorteios)
 
-    # Aplica o Counting Sort para cada dígito, da direita para a esquerda
-    exp = 1
-    while max_key // exp > 0:
-        counting_sort_custom(data_list, exp, get_key_func)
-        exp *= 10
+    expoente = 1
+    while chave_maxima // expoente > 0:
+        counting_sort(lista_de_sorteios, expoente, obter_chave_func)
+        expoente *= 10
     
-    return data_list
+    return lista_de_sorteios
 
-def generate_sort_key(numbers):
+def gerar_chave_ordenacao(numeros):
     """
-    Gera uma chave numérica única e grande a partir de uma lista de números.
-    A chave garante que a ordenação numérica corresponda à ordenação correta
-    dos conjuntos de números.
-    Ex: [1, 2, 3] -> 10203
+    Cria uma chave numérica única para cada sorteio a partir da lista de números.
+    Ex: [4, 8, 15] se torna 40815.
     """
-    sorted_numbers = sorted(numbers)
-    key = 0
+    numeros_ordenados = sorted(numeros)
+    chave = 0
     base = 100
-    for num in sorted_numbers:
-        key = key * base + num
-    return key
+    for num in numeros_ordenados:
+        chave = chave * base + num
+    return chave
 
-def load_and_process_data(file_path):
+def carregar_e_processar_dados(caminho_arquivo):
     """
-    Lê os dados de um arquivo CSV, processa cada linha e gera as chaves de ordenação.
+    Lê o arquivo CSV, linha por linha, e transforma os dados em uma
+    lista de dicionários para manipulação.
     """
-    draw_data = []
-    print(f"Lendo o arquivo de dados: {file_path}")
+    dados_sorteios = []
+    print(f"Lendo o arquivo de dados: {caminho_arquivo}")
     try:
-        with open(file_path, "r", encoding="utf-8") as file:
-            lines = file.readlines()
+        with open(caminho_arquivo, "r", encoding="utf-8") as arquivo:
+            linhas = arquivo.readlines()[1:] # Pula o cabeçalho
             
-            # Pula o cabeçalho
-            for i, line in enumerate(lines[1:], 1):
+            for i, linha in enumerate(linhas, 1):
                 try:
-                    # CORREÇÃO: Altera o separador de ';' para ','
-                    fields = line.strip().split(',')
+                    colunas = linha.strip().split(',')
 
-                    if len(fields) < 8:
-                        print(f"Aviso: Linha {i+1} ignorada (formato inválido, poucas colunas).")
+                    if len(colunas) < 8:
+                        print(f"Aviso: Linha {i+1} ignorada (formato inválido).")
                         continue
                     
-                    contest = int(fields[0])
-                    # As dezenas estão nas colunas de índice 2 a 7
-                    numbers = [int(n) for n in fields[2:8]]
-                    
-                    sort_key = generate_sort_key(numbers)
+                    concurso = int(colunas[0])
+                    numeros = [int(n) for n in colunas[2:8]]
+                    chave_ordenacao = gerar_chave_ordenacao(numeros)
 
-                    draw_data.append({
-                        "concurso": contest,
-                        "numeros": sorted(numbers),
-                        "chave_ordenacao": sort_key,
+                    dados_sorteios.append({
+                        "concurso": concurso,
+                        "numeros": sorted(numeros),
+                        "chave_ordenacao": chave_ordenacao,
                     })
-                except (ValueError, IndexError) as e:
-                    print(f"Aviso: Linha {i+1} ignorada (formato inválido). Erro: {e}")
+                except (ValueError, IndexError):
+                    print(f"Aviso: Linha {i+1} ignorada (dados inválidos).")
                     continue
         
-        print(f"{len(draw_data)} sorteios carregados com sucesso.")
-        return draw_data
+        print(f"-> {len(dados_sorteios)} sorteios carregados com sucesso.")
+        return dados_sorteios
 
     except FileNotFoundError:
-        print(f"Erro: O arquivo '{file_path}' não foi encontrado.")
+        print(f"ERRO: O arquivo '{caminho_arquivo}' não foi encontrado.")
         return []
     except Exception as e:
-        print(f"Ocorreu um erro inesperado ao ler o arquivo: {e}")
+        print(f"ERRO: Ocorreu um erro inesperado ao ler o arquivo: {e}")
         return []
 
-def save_sorted_results(data, output_path):
+def salvar_resultados_ordenados(dados, caminho_saida):
     """
-    Salva os dados ordenados em um novo arquivo CSV.
+    Salva a lista de sorteios ordenada em um novo arquivo CSV.
     """
-    print(f"Salvando resultados ordenados em: {output_path}")
+    print(f"Salvando resultados ordenados em: {caminho_saida}")
     try:
-        os.makedirs(os.path.dirname(output_path), exist_ok=True)
-        with open(output_path, "w", encoding="utf-8", newline="") as file:
-            file.write("Números Sorteados,Sorteio\n")
-            for draw in data:
-                # Formata os números com zero à esquerda e como uma lista de strings
-                formatted_numbers = f"\"[{','.join([f'{num:02d}' for num in draw['numeros']])}]\""
-                file.write(f"{formatted_numbers},{draw['concurso']}\n")
-        print("Arquivo salvo com sucesso!")
+        os.makedirs(os.path.dirname(caminho_saida), exist_ok=True)
+        with open(caminho_saida, "w", encoding="utf-8", newline="") as arquivo:
+            arquivo.write("Números Sorteados,Sorteio\n")
+            for sorteio in dados:
+                numeros_formatados = f"\"[{','.join([f'{num:02d}' for num in sorteio['numeros']])}]\""
+                arquivo.write(f"{numeros_formatados},{sorteio['concurso']}\n")
+        print("-> Arquivo salvo com sucesso!")
     except Exception as e:
-        print(f"Ocorreu um erro ao salvar o arquivo: {e}")
+        print(f"ERRO: Ocorreu um erro ao salvar o arquivo: {e}")
 
 def main():
     """
     Função principal que orquestra todo o processo.
     """
-    print("========================================")
-    print("  Ordenador de Resultados da Mega-Sena  ")
-    print("========================================")
+    print("=====================================================")
+    print("   Ordenador de Resultados da Mega-Sena com Radix Sort   ")
+    print("=====================================================")
 
-    input_file = os.path.join("draw-data", "Mega-Sena-Resultados-Randomizados.csv")
-    output_file = os.path.join("draw-data", "Mega-Sena-Resultados-Ordenados-RadixSort.csv")
+    arquivo_entrada = os.path.join("draw-data", "Mega-Sena-Resultados-Randomizados.csv")
+    arquivo_saida = os.path.join("draw-data", "Mega-Sena-Resultados-Ordenados-RadixSort.csv")
 
-    # 1. Carregar e processar dados
-    all_draws = load_and_process_data(input_file)
+    todos_os_sorteios = carregar_e_processar_dados(arquivo_entrada)
 
-    if not all_draws:
-        print("Nenhum dado foi carregado. O programa será encerrado.")
+    if not todos_os_sorteios:
+        print("\nNenhum dado foi carregado. O programa será encerrado.")
         return
 
-    # 2. Ordenar com Radix Sort
     print("\nIniciando a ordenação com Radix Sort...")
-    sorted_draws = radix_sort_custom(all_draws, lambda item: item['chave_ordenacao'])
-    print("Ordenação concluída.")
+    sorteios_ordenados = radix_sort(todos_os_sorteios, lambda item: item['chave_ordenacao'])
+    print("-> Ordenação concluída.")
 
-    # 3. Salvar os resultados
-    save_sorted_results(sorted_draws, output_file)
+    salvar_resultados_ordenados(sorteios_ordenados, arquivo_saida)
 
-    # 4. Exibir uma amostra
-    print("\n========================================")
-    print("  Amostra dos Primeiros Resultados Ordenados")
-    print("========================================")
-    print("Números Sorteados   - Sorteio")
-    print("========================================")
-    for draw in sorted_draws[:10]:
-        numbers_str = str(draw['numeros']).replace(" ", "")
-        print(f"{numbers_str} - {draw['concurso']}")
+    print("\n=====================================================")
+    print("     Amostra dos 10 Primeiros Resultados Ordenados    ")
+    print("=====================================================")
+    print("Números Sorteados   - Concurso")
+    print("-----------------------------------------------------")
+    for sorteio in sorteios_ordenados[:10]:
+        numeros_str = str(sorteio['numeros']).replace(" ", "")
+        print(f"{numeros_str} - {sorteio['concurso']}")
     
     print("\nProcesso finalizado com sucesso!")
 
 if __name__ == "__main__":
     main()
-
