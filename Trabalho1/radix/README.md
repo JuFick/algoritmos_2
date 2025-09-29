@@ -1,85 +1,44 @@
-# 🎲 Mega-Sena - Ordenação com Radix Sort
+# 📄 Guia Rápido: Ordenador da Mega-Sena
+Este guia mostra como usar o script Python para ordenar os resultados da Mega-Sena de forma rápida e fácil.
 
-Este projeto foi desenvolvido como parte de um estudo em **Algoritmos e Estrutura de Dados II**.
-O objetivo é **ordenar resultados da Mega-Sena** utilizando o algoritmo **Radix Sort**, garantindo uma ordenação eficiente dos sorteios em ordem crescente.
+### 🎯 O que o projeto faz?
+Lê um arquivo .csv com os resultados dos sorteios da Mega-Sena.
 
----
+Ordena todos os sorteios em ordem crescente, com base nos números sorteados.
 
-## 📌 Objetivos do Projeto
+Salva o resultado ordenado em um novo arquivo .csv.
 
-- Ler resultados da Mega-Sena a partir de um arquivo CSV.
-- Ordenar os números sorteados utilizando **Radix Sort**.
-- Apresentar os resultados no formato:
-```
-Números Sorteados - Sorteio
-[01,03,23,27,47,57] - 2683
-[01,04,08,21,46,51] - 2667
-[01,11,19,20,28,48] - 2700
-```
+O algoritmo de ordenação utilizado é o Radix Sort.
 
-- Salvar os resultados ordenados em um novo arquivo CSV.
-- Criar um **randomizador** que embaralha os resultados para simular uma base desordenada.
+### 📁 O que você precisa?
+A estrutura de pastas deve ser a seguinte:
 
----
+```.
+├── draw-data/
+│   └── Mega-Sena-Resultados-Randomizados.csv  # Seu arquivo de dados aqui
+└── nome_do_seu_projeto.py                    # O script principal
+```
+- O script: nome_do_seu_projeto.py.
+- Uma pasta: chamada draw-data.
 
-## 📂 Estrutura do Projeto
-```
-mega-sena-radixsort/
-├── data/
-│   ├── resultados_ordenados.csv      # resultados finais já ordenados
-│   └── resultados_randomizados.csv   # resultados embaralhados
-├── ordenar_megasena.py               # script principal (Radix Sort)
-└── embaralhar_megasena.py            # script randomizador
-```
+Seu arquivo de dados: com o nome Mega-Sena-Resultados-Randomizados.csv, localizado dentro da pasta draw-data. 
+Baixar do site oficial da CAIXA: https://loterias.caixa.gov.br/Paginas/mega-sena.aspx?utm_source=chatgpt.com
 
----
+### ▶️ Como executar
+Siga os 3 passos abaixo:
 
-## ⚙️ Como Executar
-1️⃣ Clonar o repositório
-```
-cd seu-diretorio
-git clone https://github.com/usuario/mega-sena-radixsort.git
-```
-2️⃣ Gerar resultados embaralhados
-Antes de ordenar, precisamos simular um CSV desordenado:
-```
-python embaralhar_megasena.py
-```
-Isso irá gerar o arquivo: ./data/resultados_randomizados.csv
+✔️ Pré-requisitos:
 
-3️⃣ Ordenar com Radix Sort
-```
-python ordenar_megasena.py
-```
-Será criado o arquivo final: ./data/resultados_ordenados.csv
+- Ter o Python 3 instalado.
 
-🧩 Estrutura dos Arquivos CSV
-Arquivo resultados_randomizados.csv (entrada):
-```
-Concurso;Data;N1;N2;N3;N4;N5;N6
-2683;2023-08-15;01;03;23;27;47;57
-2667;2023-07-22;01;04;08;21;46;51
-```
-Arquivo resultados_ordenados.csv (saída):
-```
-Números Sorteados,Sorteio
-"[01,03,23,27,47,57]",2683
-"[01,04,08,21,46,51]",2667
-```
+📁 Estrutura:
 
-📊 Exemplo de Execução no Terminal
-```
-============================================================
-ORDENAÇÃO DE RESULTADOS DA MEGA-SENA COM RADIX SORT
-============================================================
-Total de sorteios lidos: 60
-✅ Arquivo salvo: ./data/resultados_ordenados.csv
+- Garanta que o seu arquivo .csv com os resultados está na pasta draw-data.
 
-=== EXEMPLOS DE RESULTADOS ORDENADOS ===
-[01,03,23,27,47,57] - 2683
-[01,04,08,21,46,51] - 2667
-[01,11,19,20,28,48] - 2700
-```
-📚 Algoritmo Utilizado
+🚀 Execução:
 
-O Radix Sort é um algoritmo de ordenação não-comparativo que ordena inteiros processando seus dígitos individuais.
+- Abra seu terminal, navegue até a pasta do projeto e rode o comando:
+```
+python nome_do_seu_projeto.py
+```
+Pronto! Um novo arquivo com os resultados ordenados será criado na pasta draw-data.
