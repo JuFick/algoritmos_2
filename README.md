@@ -1,0 +1,1 @@
+Repositório destinado para a disciplina de Algorítimos e Estruturas de Dados II
